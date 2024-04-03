@@ -1,5 +1,5 @@
 """
-Views for the Recipe APIs.
+Views for the recipe APIs
 """
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
@@ -11,12 +11,22 @@ from recipe import serializers
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """View for manage recipe APIs."""
-    serializers_class = serializers.RecipeSerializer
+    serializer_class = serializers.RecipeDetailSerializer
     queryset = Recipe.objects.all()
-    authenication_classes = [TokenAuthentication]
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """Retrieve recipes for authenciated user."""
+        """Retrieve recipes for authenticated user."""
         return self.queryset.filter(user=self.request.user).order_by('-id')
     
+    def get_serializer_class(self):
+        """Return the serializer class for request."""
+        if self.action == 'list':
+            return serializers.RecipeSerializer
+        
+        return self.serializer_class
+    
+    def perform_create(self, serializer):
+        """Create a new recipe."""
+        serializer.save(user=self.request.user)
